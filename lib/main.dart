@@ -4,6 +4,7 @@ import 'Widget/calendar_widget.dart';
 import 'Page/event_editing_page.dart';
 
 // https://www.youtube.com/watch?v=2L8maZUY2hU
+// https://www.youtube.com/watch?v=LoDtxRkGDTw
 void main() {
   runApp(const MyApp());
 }
