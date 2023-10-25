@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:sampleproject/provider/event_provider.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'Widget/calendar_widget.dart';
 import 'Page/event_editing_page.dart';
@@ -16,18 +18,19 @@ class MyApp extends StatelessWidget {
 
   // This widget is the root of your application.
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: title,
-      themeMode: ThemeMode.dark,
-      darkTheme: ThemeData.dark().copyWith(
-        scaffoldBackgroundColor: Colors.black,
-        primaryColor: Colors.red,
-      ),
-      home: MainPage(),
-    );
-  }
+  Widget build(BuildContext context) => ChangeNotifierProvider(
+        create: (context) => EventProvider(),
+        child: MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: title,
+          themeMode: ThemeMode.dark,
+          darkTheme: ThemeData.dark().copyWith(
+            scaffoldBackgroundColor: Colors.black,
+            primaryColor: Colors.red,
+          ),
+          home: MainPage(),
+        ),
+      );
 }
 
 class MainPage extends StatelessWidget {

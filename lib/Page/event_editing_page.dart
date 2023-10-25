@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sampleproject/Utils/utils.dart';
 import 'package:sampleproject/model/event.dart';
+import 'package:sampleproject/provider/event_provider.dart';
 
 class EventEditingPage extends StatefulWidget {
   final Event? event;
@@ -58,7 +59,7 @@ class _EventEditingPageState extends State<EventEditingPage> {
             style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.transparent,
                 shadowColor: Colors.transparent),
-            onPressed: () {},
+            onPressed: saveForm,
             icon: Icon(Icons.done),
             label: Text('SAVE'))
       ];
@@ -69,33 +70,107 @@ class _EventEditingPageState extends State<EventEditingPage> {
           border: UnderlineInputBorder(),
           hintText: 'Add Title',
         ),
-        onFieldSubmitted: (_) {},
+        onFieldSubmitted: (_) => saveForm(),
         validator: (title) =>
             title != null && title.isEmpty ? 'Title cannot be empty' : null,
         controller: titleController,
       );
 
   Widget buildDatTimePickers() => Column(
-        children: [
-          buildFrom(),
-        ],
+        children: [buildFrom(), buildTo()],
       );
 
   Widget buildFrom() => Buildheader(
-    header : 'FROM',
-    child : Row(
+      header: 'FROM',
+      child: Row(
         children: [
           Expanded(
             flex: 2, // more space
             child: buildDropdownField(
-                text: Utils.toDate(fromDate), onClicked: () {}),
+                text: Utils.toDate(fromDate),
+                onClicked: () => pickFromDateTime(pickDate: true)),
           ),
           Expanded(
               child: buildDropdownField(
-                  text: Utils.toTime(fromDate), onClicked: () {})),
+                  text: Utils.toTime(fromDate),
+                  onClicked: () => pickFromDateTime(pickDate: false))),
         ],
-      )
-  );
+      ));
+
+  Future pickFromDateTime({required bool pickDate}) async {
+    final date = await pickDateTime(fromDate,
+        pickDate: pickDate, firstDate: pickDate ? fromDate : null);
+
+    if (date == null) return;
+
+    if (date.isAfter(toDate)) {
+      toDate =
+          DateTime(date.year, date.month, date.day, toDate.hour, toDate.minute);
+    }
+
+    setState(() => fromDate = date);
+  }
+
+  // method to pick the timer
+  Future<DateTime?> pickDateTime(
+    DateTime initialDate, {
+    required bool pickDate,
+    DateTime? firstDate,
+  }) async {
+    if (pickDate) {
+      final date = await showDatePicker(
+          context: context,
+          initialDate: initialDate,
+          firstDate: firstDate ?? DateTime(2013, 1),
+          lastDate: DateTime(2101));
+
+      if (date == null) return null;
+
+      final time = Duration(
+          hours: initialDate.hour,
+          minutes: initialDate.minute,
+          seconds: initialDate.second);
+
+      return date.add(time);
+    } else {
+      final timeOfDay = await showTimePicker(
+          context: context, initialTime: TimeOfDay.fromDateTime(initialDate));
+
+      if (timeOfDay == null) return null;
+
+      final date =
+          DateTime(initialDate.year, initialDate.month, initialDate.day);
+
+      final time = Duration(hours: timeOfDay.hour, minutes: timeOfDay.minute);
+
+      return date.add(time);
+    }
+  }
+
+  Widget buildTo() => Buildheader(
+      header: 'TO',
+      child: Row(
+        children: [
+          Expanded(
+            flex: 2, // more space
+            child: buildDropdownField(
+                text: Utils.toDate(toDate),
+                onClicked: () => pickToDateTime(pickDate: true)),
+          ),
+          Expanded(
+              child: buildDropdownField(
+                  text: Utils.toTime(toDate),
+                  onClicked: () => pickToDateTime(pickDate: false))),
+        ],
+      ));
+
+  Future pickToDateTime({required bool pickDate}) async {
+    final date = await pickDateTime(toDate, pickDate: pickDate);
+
+    if (date == null) return;
+
+    setState(() => toDate = date);
+  }
 
   Widget buildDropdownField({
     required String text,
@@ -110,11 +185,34 @@ class _EventEditingPageState extends State<EventEditingPage> {
   Widget Buildheader({
     required String header,
     required Widget child,
-  }) => 
-  Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(header, style: TextStyle(fontWeight: FontWeight.bold),)
-    ],
-  )
+  }) =>
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            header,
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          child,
+        ],
+      );
+
+  Future saveForm() async {
+    // our title is not empty
+    final isValid = _formKey.currentState!.validate();
+
+    if (isValid) {
+      final event = Event(
+          title: titleController.text,
+          description: "Description",
+          from: fromDate,
+          to: toDate,
+          isAllDay: false);
+
+      final provider = Provider.of<EventProvider>(context, listen: true);
+      provider.addEvent(event);
+
+      Navigator.of(context).pop();
+    }
+  }
 }
