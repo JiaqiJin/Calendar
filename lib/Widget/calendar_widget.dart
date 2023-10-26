@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:sampleproject/provider/event_provider.dart';
 import 'package:sampleproject/model/event_data_source.dart';
+import 'package:sampleproject/Widget/task_widget.dart';
 
 class CalendarWidget extends StatelessWidget {
   const CalendarWidget({super.key});
@@ -20,7 +21,8 @@ class CalendarWidget extends StatelessWidget {
           final provider = Provider.of<EventProvider>(context, listen: true);
 
           provider.setDate(details.date!);
-          //showModalBottomSheet(context: context, builder: (context) => TaskWidget())
+          showModalBottomSheet(
+              context: context, builder: (context) => TaskWidget());
         });
   }
 }
